@@ -123,13 +123,68 @@ Các thông tin nhạy cảm (token, API key) được quản lý thông qua bi�
 | `DISCORD_TOKEN` | Token Discord Bot để xác thực với Discord API | Có |
 | `GROQ_API_KEY` | API key của Groq để sử dụng AI chat (roleplay) | Có (cho roleplay) |
 
-### 5.3. Khởi động Lavalink
+Cách đơn giản nhất là tạo file `.env` **trong cùng thư mục chạy bot**.
 
-Trước khi mở bot, hãy khởi động Lavalink bằng các file cấu hình đi kèm:
+Ví dụ nếu bạn chạy bot từ:
+
+```text
+bin\Debug\net10.0\
+```
+
+thì hãy tạo file:
+
+```text
+bin\Debug\net10.0\.env
+```
+
+Nội dung mẫu của file `.env`:
+
+```env
+DISCORD_TOKEN=your_discord_bot_token_here
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+Ý nghĩa từng biến:
+
+- `DISCORD_TOKEN`: token của bot Discord, bắt buộc để bot đăng nhập và hoạt động
+- `GROQ_API_KEY`: API key của Groq, cần nếu bạn muốn dùng tính năng roleplay AI
+
+Lưu ý khi tạo file `.env`:
+
+- Không thêm dấu cách trước hoặc sau dấu `=`
+- Không đặt thêm dấu nháy nếu không cần
+- Lưu file đúng tên là `.env`
+- Nên đặt file `.env` cùng thư mục với `Clara_bot.exe` hoặc `Clara_bot.dll` để bot đọc dễ nhất
+- Nếu không có `GROQ_API_KEY`, bot vẫn có thể chạy nhưng tính năng roleplay sẽ báo thiếu key
+
+### 5.3. Cài đặt plugin YouTube cho Lavalink
+
+Bot cần plugin `youtube-source` để phát nhạc từ YouTube. Bạn cần:
+
+**1. Tải plugin**
+- Truy cập: https://github.com/lavalink-devs/youtube-source/releases
+- Tải file `youtube-plugin-x.x.x.jar` (ví dụ: `youtube-plugin-1.18.1.jar`)
+
+**2. Cài đặt**
+- Tạo thư mục `plugins\` nếu chưa có
+- Copy file `.jar` vừa tải vào thư mục `plugins\`
+- Cấu trúc thư mục:
+```
+Clara_bot/
+├── Lavalink.jar
+├── application.yml
+├── plugins/
+│   └── youtube-plugin-x.xx.x.jar
+└── bin/...
+```
+
+### 5.4. Khởi động Lavalink
+
+Sau khi cài plugin, khởi động Lavalink bằng các file cấu hình đi kèm:
 
 - `Lavalink.jar`
 - `application.yml`
-- thư mục `plugins\`
+- thư mục `plugins\` (đã có plugin YouTube)
 
 Chạy Lavalink trong thư mục chứa các file trên:
 
@@ -159,7 +214,15 @@ Nếu bạn đang dùng Command Prompt hoặc PowerShell và đứng trong thư 
 .\Clara_bot.exe
 ```
 
-> **Không cần** mở project bằng Visual Studio, **không cần** chạy `dotnet run`, và **không cần** cài `.NET SDK` nếu bạn chỉ sử dụng bản build sẵn.
+Hoặc nếu muốn chạy bằng file `dll`, dùng lệnh:
+
+```powershell
+dotnet Clara_bot.dll
+```
+
+> **Lưu ý:** Với bản build sẵn, lệnh đúng là `dotnet Clara_bot.dll`, không phải `dotnet run Clara_bot.dll`.
+
+> **Không cần** mở project bằng Visual Studio, **không cần** source code, và **không cần** cài `.NET SDK` nếu bạn chỉ sử dụng bản build sẵn. Chỉ cần `.NET Runtime` là đủ.
 
 ## 6. Cách sử dụng chi tiết
 
