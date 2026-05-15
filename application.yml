@@ -1,0 +1,23 @@
+server:
+  port: 2333
+  address: 127.0.0.1
+
+plugins:
+  youtube:
+    enabled: true
+    allowSearch: true
+    allowDirectVideoIds: true
+    allowDirectPlaylistIds: true
+    clients:
+      - M_WEB
+      - WEB
+      - MUSIC
+      - ANDROID_VR
+      - TV
+      - TVHTML5_SIMPLY
+
+lavalink:
+  server:
+    password: "youshallnotpass"
+    sources:
+      youtube: false
