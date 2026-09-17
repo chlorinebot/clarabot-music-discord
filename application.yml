@@ -9,15 +9,39 @@ plugins:
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
     clients:
-      - M_WEB
+      # Anonymous clients first; TV must not be first when remoteCipher is enabled.
+      - MWEB
       - WEB
-      - MUSIC
-      - ANDROID_VR
+      # The only youtube-source client that supports OAuth playback.
       - TV
-      - TVHTML5_SIMPLY
+
+    # YouTube is rejecting anonymous playback from this IP. Use a dedicated
+    # account: high traffic can rate-limit or terminate the authenticated account.
+    oauth:
+      enabled: true
+      refreshToken: "${YOUTUBE_REFRESH_TOKEN:}"
+      skipInitialization: true
+
+    # Public yt-cipher currently allows 10 requests/second (documented as
+    # sufficient for roughly 1,000 active players). For production-grade
+    # availability, replace this URL with a self-hosted yt-cipher instance.
+    remoteCipher:
+      url: "https://cipher.kikkia.dev/"
+      userAgent: "ClaraBot/1.1.1"
 
 lavalink:
   server:
     password: "youshallnotpass"
+    timeouts:
+      connectTimeoutMs: 10000
+      connectionRequestTimeoutMs: 10000
+      socketTimeoutMs: 10000
     sources:
       youtube: false
+      # Twitch is unused; disabling it prevents startup failures when twitch.tv times out.
+      twitch: false
+
+logging:
+  level:
+    # Required to display the one-time device authorization URL and code.
+    dev.lavalink.youtube.http.YoutubeOauth2Handler: INFO

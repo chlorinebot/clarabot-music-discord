@@ -1,306 +1,251 @@
-# Clara Bot - Mô tả & Hướng dẫn sử dụng
-
-## 1. Giới thiệu tổng quan
-
-**Clara** là một Discord bot được viết bằng ngôn ngữ C# (.NET 10), sử dụng thư viện Discord.NET. Bot được thiết kế với mục tiêu mang đến trải nghiệm giải trí âm nhạc và trò chuyện thông minh cho cộng đồng người dùng Discord.
-
-- **Phiên bản:** 1.0.1
-- **Ngôn ngữ lập trình:** C# (.NET 10)
-- **Thư viện Discord:** Discord.NET
-- **Thư viện âm nhạc:** Lavalink4NET
-- **Tác giả:** Kim Tuấn
-- **GitHub:** https://github.com/chlorinebot
-
-## 2. Hệ thống lệnh
-
-Tất cả lệnh của Clara đều sử dụng tiền tố `/` (slash command qua prefix `/`).
-
-### 2.1. Lệnh hệ thống & thông tin
-
-| Lệnh | Mô tả |
-|------|-------|
-| `/heyclara` hoặc `/help` | Hiển thị danh sách tất cả các lệnh hiện có của bot |
-| `/infoclara` | Hiển thị thông tin về bot, phiên bản, tác giả, GitHub và liên kết donate |
-
-### 2.2. Lệnh phát nhạc
-
-| Lệnh | Mô tả |
-|------|-------|
-| `/playclara [link]` hoặc `/p [link]` | Phát nhạc từ YouTube vào kênh voice. Có thể nhập link YouTube hoặc từ khóa tìm kiếm |
-| `/pauseclara` | Tạm dừng bài hát đang phát |
-| `/resumeclara` | Tiếp tục phát nhạc sau khi tạm dừng |
-| `/stopclara` | Dừng phát nhạc hoàn toàn và ngắt kết nối khỏi kênh voice |
-| `/prevclara` | Lùi về bài trước trong playlist |
-| `/nextclara` | Chuyển sang bài tiếp theo trong playlist |
-| `/jumpclara [n]` | Nhảy tới bài số n trong playlist đang phát |
-| `/showplaylistclara` | Hiển thị danh sách bài hát trong playlist hiện tại (phân trang, 10 bài/trang) |
-| `/loopclara` hoặc `/loop` | Bật/tắt chế độ lặp lại toàn bộ playlist |
-| `/infoplayclara` | Hiển thị thông tin chi tiết bài hát đang phát (tiêu đề, tác giả, thời lượng, thời gian đã phát) |
-
-### 2.3. Lệnh kiểm tra hệ thống
-
-| Lệnh | Mô tả |
-|------|-------|
-| `/pingclara` | Kiểm tra và hiển thị thông tin tài nguyên máy chủ bao gồm: CPU, RAM, độ trễ mạng (ping), tốc độ tải xuống và tốc độ tải lên. Mỗi chỉ số đi kèm đánh giá màu sắc (🟢 Tốt, 🟡 Trung bình, 🟠 Cận tệ, 🔴 Tệ) |
-
-### 2.4. Lệnh Roleplay (Trò chuyện AI)
-
-| Lệnh | Mô tả |
-|------|-------|
-| `/roleplayclara on` | Bật chế độ roleplay, cho phép trò chuyện với Clara bằng tin nhắn thường trong kênh |
-| `/roleplayclara off` | Tắt chế độ roleplay cho kênh hiện tại |
-
-Khi chế độ roleplay được bật, Clara sẽ tự động phản hồi mọi tin nhắn trong kênh (không phải lệnh bot) bằng AI, đóng vai một nhân vật fantasy dễ thương và thân thiện. Clara sử dụng Groq API với model Llama-3.3-70B-Versatile để tạo phản hồi tự nhiên bằng tiếng Việt.
-
-## 3. Kiến trúc kỹ thuật
-
-### 3.1. Cấu trúc module
-
-Clara được tổ chức thành các module riêng biệt, dễ bảo trì:
-
-- **GeneralModule** - Xử lý lệnh hệ thống, trợ giúp và thông tin bot
-- **MusicModule** - Xử lý toàn bộ chức năng phát nhạc, playlist và các thao tác điều khiển phát
-- **RoleplayModule** - Xử lý trò chuyện AI thông qua Groq API
-- **HeartModule** - Xử lý kiểm tra tài nguyên hệ thống và tốc độ mạng
-- **CommandHandler** - Quản lý tiền xử lý tin nhắn, điều phối lệnh và xử lý button tương tác
-
-### 3.2. Các tính năng kỹ thuật nổi bật
-
-- **Hệ thống Lavalink:** Clara kết nối tới server Lavalink (mặc định `http://127.0.0.1:2333`) để xử lý phát nhạc, đảm bảo hiệu suất cao và không gây lag cho máy chủ.
-- **Tự động kết nối lại:** Bot có cơ chế tự động thử kết nối lại Discord (tối đa 500 lần retry) khi bị mất kết nối, đảm bảo uptime tối đa.
-- **Xử lý playlist thông minh:** Hỗ trợ phát playlist YouTube với hàng đợi, phân trang, nhảy bài, lặp lại và tự động bỏ qua các bài bị giới hạn đăng nhập/độ tuổi.
-- **Auto-disconnect:** Bot tự động ngắt kết nối khỏi voice khi playlist kết thúc hoặc gặp lỗi nghiêm trọng.
-- **Rate limiting nhẹ:** Mỗi kênh roleplay có semaphore để tránh spam, đảm bảo chỉ một yêu cầu AI được xử lý tại một thời điểm.
-- **Đánh giá tài nguyên thông minh:** Lệnh `/pingclara` đo CPU bằng Windows API, RAM bằng `GlobalMemoryStatusEx`, tốc độ mạng qua Cloudflare và HTTPBin.
-- **Phân chia tin nhắn dài:** Nếu phản hồi AI quá dài (vượt giới hạn 1900 ký tự của Discord), tin nhắn sẽ được tự động chia nhỏ theo dòng.
-
-## 4. Yêu cầu hệ thống
-
-### 4.1. Phụ thuộc bắt buộc
-
-- **.NET 10 Runtime** hoặc cao hơn để chạy bản đã build trong thư mục `bin`
-- **Lavalink Server** chạy tại `http://127.0.0.1:2333` với password `youshallnotpass` (cấu hình mặc định)
-- **Discord Bot Token** - được đọc từ biến môi trường `DISCORD_TOKEN`
-- **Groq API Key** - cần thiết cho chức năng roleplay AI, đọc từ biến môi trường `GROQ_API_KEY` hoặc file `.env`
-
-### 4.2. Gateway Intents được sử dụng
-
-Clara yêu cầu các Discord Gateway Intents sau để hoạt động:
-
-- `Guilds` - Truy cập thông tin server
-- `GuildMessages` - Đọc tin nhắn trong server
-- `MessageContent` - Đọc nội dung tin nhắn (cần thiết cho roleplay)
-- `GuildVoiceStates` - Quản lý kênh voice
-
-> **Lưu ý:** Intent `MessageContent` cần được bật trong Discord Developer Portal để bot có thể đọc nội dung tin nhắn.
-
-## 5. Cấu hình & Khởi chạy
-
-### 5.1. Chuẩn bị bản build
-
-Người dùng cuối **không cần chạy từ source code**. Chỉ cần tải thư mục bản build đã biên dịch sẵn, ví dụ:
+# Clara Bot
 
 ```text
-bin\Debug\net10.0\
+   ___ _                     ___       _     _
+  / __\ | __ _ _ __ __ _    / __\ ___ | |_  / \
+ / /  | |/ _` | '__/ _` |  /__\/// _ \| __|/  /
+/ /___| | (_| | | | (_| | / \/  \ (_) | |_/\_/
+\____/|_|\__,_|_|  \__,_| \_____/\___/ \__\/  
 ```
 
-Trong thư mục này cần giữ nguyên các file đi kèm như:
+> Logo được tạo bằng `FiggleFonts.Ogre`, cùng font ASCII mà bot hiển thị khi khởi động.
 
-- `Clara_bot.exe`
-- `Clara_bot.dll`
-- `Clara_bot.runtimeconfig.json`
-- `Clara_bot.deps.json`
-- các file `.dll` phụ thuộc khác
+Clara là Discord bot đa năng viết bằng C# và .NET 10, tập trung vào phát nhạc qua Lavalink, quản lý cộng đồng và trò chuyện roleplay bằng AI. Bot hỗ trợ slash command, prefix command, hàng đợi nhạc, tự phục hồi kết nối và chẩn đoán hệ thống.
 
-> **Lưu ý:** Không chạy riêng từng file `.dll`. Hãy chạy trực tiếp `Clara_bot.exe` và giữ toàn bộ các file build trong cùng một thư mục.
+## Tổng quan
 
-### 5.2. Cấu hình biến môi trường
+| Thành phần | Công nghệ |
+|---|---|
+| Runtime | .NET 10 |
+| Discord SDK | Discord.Net 3.19.1 |
+| Audio | Lavalink4NET 4.2.1 |
+| Lavalink | `127.0.0.1:2333` |
+| AI roleplay | Groq API |
+| Phiên bản | 1.2.0 |
 
-Các thông tin nhạy cảm (token, API key) được quản lý thông qua biến môi trường hoặc file `.env`:
+## Tính năng
 
-| Biến | Mô tả | Bắt buộc |
-|------|--------|----------|
-| `DISCORD_TOKEN` | Token Discord Bot để xác thực với Discord API | Có |
-| `GROQ_API_KEY` | API key của Groq để sử dụng AI chat (roleplay) | Có (cho roleplay) |
+- Phát nhạc và playlist YouTube qua Lavalink.
+- Hàng đợi, tìm kiếm, lặp, trộn, chuyển bài và điều chỉnh tốc độ phát.
+- Slash command được đăng ký tự động và xử lý bằng deferred response.
+- Công cụ moderation: kick, ban, unban, role, warn, clear, lock và slowmode.
+- Roleplay AI theo từng kênh bằng Groq API.
+- Theo dõi CPU, RAM, latency và tốc độ mạng.
+- Tự động giám sát, kết nối lại Discord và Lavalink.
+- Ghi log theo phiên vào `bin/Debug/net10.0/logs`.
+- Chế độ kiểm tra kết nối Discord và danh sách guild độc lập.
 
-Cách đơn giản nhất là tạo file `.env` **trong cùng thư mục chạy bot**.
+## Yêu cầu
 
-Ví dụ nếu bạn chạy bot từ:
+- [.NET 10 SDK](https://dotnet.microsoft.com/download) để build từ source.
+- Java 17 trở lên để chạy Lavalink.
+- Discord bot token.
+- Bật `Message Content Intent` và `Server Members Intent` trong Discord Developer Portal.
+- Groq API key nếu sử dụng roleplay AI.
+- Lavalink và plugin YouTube nếu sử dụng tính năng âm nhạc.
 
-```text
-bin\Debug\net10.0\
+## Cài đặt
+
+```powershell
+git clone https://github.com/chlorinebot/Clara_bot.git
+cd Clara_bot
+dotnet restore
+dotnet build --no-restore
 ```
 
-thì hãy tạo file:
+### Biến môi trường
 
-```text
-bin\Debug\net10.0\.env
-```
-
-Nội dung mẫu của file `.env`:
+Tạo file `.env` ở thư mục gốc:
 
 ```env
-DISCORD_TOKEN=your_discord_bot_token_here
-GROQ_API_KEY=your_groq_api_key_here
+DISCORD_TOKEN=your_discord_bot_token
+GROQ_API_KEY=your_groq_api_key
+YOUTUBE_API_KEY=your_youtube_api_key
 ```
 
-Ý nghĩa từng biến:
+| Biến | Bắt buộc | Mục đích |
+|---|---:|---|
+| `DISCORD_TOKEN` | Có | Xác thực bot với Discord |
+| `GROQ_API_KEY` | Không | Bật tính năng roleplay AI |
+| `YOUTUBE_API_KEY` | Không | Hỗ trợ chức năng YouTube cần API |
 
-- `DISCORD_TOKEN`: token của bot Discord, bắt buộc để bot đăng nhập và hoạt động
-- `GROQ_API_KEY`: API key của Groq, cần nếu bạn muốn dùng tính năng roleplay AI
+Không commit `.env`, token, API key hoặc webhook URL lên GitHub.
 
-Lưu ý khi tạo file `.env`:
+## Cấu hình Lavalink
 
-- Không thêm dấu cách trước hoặc sau dấu `=`
-- Không đặt thêm dấu nháy nếu không cần
-- Lưu file đúng tên là `.env`
-- Nên đặt file `.env` cùng thư mục với `Clara_bot.exe` hoặc `Clara_bot.dll` để bot đọc dễ nhất
-- Nếu không có `GROQ_API_KEY`, bot vẫn có thể chạy nhưng tính năng roleplay sẽ báo thiếu key
-
-### 5.3. Cài đặt plugin YouTube cho Lavalink
-
-Bot cần plugin `youtube-source` để phát nhạc từ YouTube. Bạn cần:
-
-**1. Tải plugin**
-- Truy cập: https://github.com/lavalink-devs/youtube-source/releases
-- Tải file `youtube-plugin-x.x.x.jar` (ví dụ: `youtube-plugin-1.18.1.jar`)
-
-**2. Cài đặt**
-- Tạo thư mục `plugins\` nếu chưa có
-- Copy file `.jar` vừa tải vào thư mục `plugins\`
-- Cấu trúc thư mục:
-```
+```text
 Clara_bot/
 ├── Lavalink.jar
 ├── application.yml
-├── plugins/
-│   └── youtube-plugin-x.xx.x.jar
-└── bin/...
+└── plugins/
+    └── youtube-plugin-*.jar
 ```
 
-### 5.4. Khởi động Lavalink
+Mặc định bot kết nối tới `http://127.0.0.1:2333` với password `youshallnotpass`.
 
-Sau khi cài plugin, khởi động Lavalink bằng các file cấu hình đi kèm:
+Khởi động Lavalink trong terminal riêng:
 
-- `Lavalink.jar`
-- `application.yml`
-- thư mục `plugins\` (đã có plugin YouTube)
-
-Chạy Lavalink trong thư mục chứa các file trên:
-
-```bash
+```powershell
 java -jar Lavalink.jar
 ```
 
-Khi thấy log dạng:
+Đợi Lavalink báo sẵn sàng trước khi dùng lệnh âm nhạc. Bot vẫn có thể kết nối Discord khi Lavalink chưa hoạt động và sẽ giám sát node trong nền.
 
-```text
-Lavalink is ready to accept connections.
-```
+## Khởi động bot
 
-thì mới tiếp tục mở bot.
-
-### 5.4. Mở bot từ bản build
-
-Sau khi Lavalink đã chạy, mở bot bằng file:
-
-```text
-Clara_bot.exe
-```
-
-Nếu bạn đang dùng Command Prompt hoặc PowerShell và đứng trong thư mục build, có thể chạy:
+Sau khi đã build:
 
 ```powershell
-.\Clara_bot.exe
+dotnet run --no-build
 ```
 
-Hoặc nếu muốn chạy bằng file `dll`, dùng lệnh:
+Sau khi thay đổi source code:
 
 ```powershell
-dotnet Clara_bot.dll
+dotnet build --no-restore
+dotnet run --no-build
 ```
 
-> **Lưu ý:** Với bản build sẵn, lệnh đúng là `dotnet Clara_bot.dll`, không phải `dotnet run Clara_bot.dll`.
+Hoặc chạy binary:
 
-> **Không cần** mở project bằng Visual Studio, **không cần** source code, và **không cần** cài `.NET SDK` nếu bạn chỉ sử dụng bản build sẵn. Chỉ cần `.NET Runtime` là đủ.
-
-## 6. Cách sử dụng chi tiết
-
-### 6.1. Phát nhạc đơn lẻ
-
-```
-/playclara https://www.youtube.com/watch?v=xxx
-```
-hoặc tìm kiếm bằng từ khóa:
-```
-/playclara tên bài hát
+```powershell
+.\bin\Debug\net10.0\Clara_bot.exe
 ```
 
-### 6.2. Phát playlist YouTube
+> Dùng `--no-build` để tránh restore/build không cần thiết mỗi lần khởi động.
 
+## Kiểm tra kết nối
+
+Kiểm tra token và Discord REST API mà không khởi động gateway:
+
+```powershell
+dotnet run --no-build -- --check-discord
 ```
-/playclara https://www.youtube.com/playlist?list=xxx
+
+Kiểm tra các guild bot có quyền truy cập:
+
+```powershell
+dotnet run --no-build -- --check-guilds
 ```
-Bot sẽ tự động tải toàn bộ playlist và phát lần lượt từng bài.
 
-### 6.3. Điều khiển playlist
+## Lệnh
 
-- Xem playlist: `/showplaylistclara` (có nút phân trang ⬅️ ➡️)
-- Nhảy tới bài số 5: `/jumpclara 5`
-- Chuyển bài tiếp: `/nextclara`
-- Lùi bài trước: `/prevclara`
-- Bật lặp: `/loopclara` (bật/tắt)
+### Thông tin và hệ thống
 
-### 6.4. Trò chuyện với Clara
+| Slash command | Prefix command | Mô tả |
+|---|---|---|
+| `/help` | `/heyclara`, `/help` | Hiển thị trợ giúp |
+| `/info` | `/infoclara` | Thông tin bot và phiên bản |
+| `/ping` | `/pingclara` | CPU, RAM, latency và tốc độ mạng |
 
-1. Bật roleplay: `/roleplayclara on`
-2. Gửi tin nhắn bình thường (không có `/`) trong cùng kênh
-3. Clara sẽ tự động trả lời với personality fantasy dễ thương
-4. Tắt khi không cần: `/roleplayclara off`
+### Âm nhạc
 
-### 6.5. Kiểm tra hệ thống
+| Slash command | Prefix command | Mô tả |
+|---|---|---|
+| `/play query:<query>` | `/playclara <query>` | Phát nhạc hoặc playlist |
+| `/search query:<query>` | `/searchclara <query>` | Tìm kiếm bài hát |
+| `/pause` | `/pauseclara` | Tạm dừng |
+| `/resume` | `/resumeclara` | Tiếp tục phát |
+| `/stop` | `/stopclara` | Dừng và rời voice |
+| `/next` | `/nextclara` | Chuyển bài kế tiếp |
+| `/prev` | `/prevclara` | Quay lại bài trước |
+| `/jump position:<n>` | `/jumpclara <n>` | Nhảy tới vị trí trong playlist |
+| `/playlist` | `/showplaylistclara` | Hiển thị playlist hiện tại |
+| `/qremove position:<n>` | `/removeclara <n>` | Xóa bài khỏi hàng đợi |
+| `/qclear` | `/clearqueueclara` | Xóa hàng đợi |
+| `/qmove from:<n> to:<n>` | `/movequeueclara <from> <to>` | Di chuyển bài trong hàng đợi |
+| `/queue` | `/queueclara` | Bật hoặc tắt queue mode |
+| `/loop` | `/loopclara` | Bật hoặc tắt lặp playlist |
+| `/shuffle` | `/shufclara` | Trộn playlist |
+| `/speed` | `/speedclara` | Điều chỉnh tốc độ phát |
+| `/infoplay` | `/infoplayclara` | Thông tin bài đang phát |
 
+### Moderation
+
+| Slash command | Mô tả |
+|---|---|
+| `/kick` | Đuổi thành viên khỏi server |
+| `/ban` | Cấm thành viên, hỗ trợ thời hạn và lý do |
+| `/unban` | Gỡ cấm thành viên |
+| `/role` | Thêm hoặc xóa role |
+| `/warn` | Cảnh cáo thành viên |
+| `/clear` | Xóa tin nhắn trong kênh |
+| `/stopclear` | Dừng tác vụ xóa tin nhắn |
+| `/lock` | Khóa kênh |
+| `/unlock` | Mở khóa kênh |
+| `/vkick` | Ngắt thành viên khỏi voice |
+| `/slowmode` | Cấu hình slowmode |
+
+Bot phải có quyền phù hợp và role nằm cao hơn thành viên cần quản lý.
+
+### Roleplay
+
+| Slash command | Prefix command | Mô tả |
+|---|---|---|
+| `/roleplay state:on` | `/roleplayclara on` | Bật roleplay trong kênh |
+| `/roleplay state:off` | `/roleplayclara off` | Tắt roleplay trong kênh |
+
+## Cấu trúc project
+
+```text
+Clara_bot/
+├── Commands/                 # Command modules và dịch vụ bot
+├── plugins/                  # Plugin Lavalink
+├── Program.cs                # Bootstrap, gateway và reconnect
+├── Clara_bot.csproj          # Cấu hình .NET và package
+├── application.yml           # Cấu hình Lavalink
+├── Lavalink.jar
+└── README.md
 ```
-/pingclara
+
+## Xử lý sự cố
+
+### Bot không kết nối Discord
+
+```powershell
+dotnet run --no-build -- --check-discord
 ```
-Bot sẽ hiển thị dashboard với các chỉ số: CPU, RAM, độ trễ ping, tốc độ tải xuống (Download), tốc độ tải lên (Upload).
 
-## 7. Công nghệ sử dụng
+- Kiểm tra `DISCORD_TOKEN` và privileged intents.
+- Đảm bảo không có instance Clara khác đang chạy.
+- Xem log mới nhất trong `bin/Debug/net10.0/logs`.
+- Project ưu tiên IPv4 vì một số mạng NAT64/IPv6 có thể làm Discord gateway kẹt ở `Connecting`.
 
-| Thư viện/Công nghệ | Mục đích |
-|---------------------|-----------|
-| **Discord.NET** | Tương tác với Discord API |
-| **Lavalink4NET** | Kết nối Lavalink để phát nhạc chất lượng cao |
-| **Groq API (Llama-3.3-70B)** | Xử lý AI cho chế độ roleplay |
-| **Figgle** | Hiển thị ASCII art banner khi khởi động |
-| **Windows API (P/Invoke)** | Đo CPU sử dụng `GetSystemTimes` |
-| **Cloudflare Speed Test** | Đo tốc độ tải xuống |
-| **HTTPBin** | Đo tốc độ tải lên |
-| **.NET 10** | Nền tảng runtime |
+### Startup dừng lâu ở bước restore
 
-## 8. Xử lý lỗi thường gặp
+```powershell
+dotnet restore
+dotnet build --no-restore
+dotnet run --no-build
+```
 
-### Lavalink chưa khởi động
-- **Triệu chứng:** Bot online nhưng không phát được nhạc
-- **Giải pháp:** Khởi động Lavalink server tại `http://127.0.0.1:2333` với password `youshallnotpass`
+### Bot online nhưng không phát nhạc
 
-### YouTube yêu cầu đăng nhập/giới hạn tuổi
-- **Triệu chứng:** Không phát được một số bài nhất định
-- **Giải pháp:** Cấu hình youtube-plugin của Lavalink với cookies hoặc poToken + visitorData, sau đó restart Lavalink
+- Kiểm tra Java và tiến trình Lavalink.
+- Kiểm tra `application.yml`, password và plugin YouTube.
+- Xem log Lavalink để phát hiện video giới hạn tuổi, yêu cầu đăng nhập hoặc lỗi cipher.
 
-### Roleplay không hoạt động
-- **Triệu chứng:** Clara không trả lời tin nhắn thường
-- **Giải pháp:** Kiểm tra biến môi trường `GROQ_API_KEY` đã được thiết lập đúng chưa
+### Roleplay không phản hồi
 
-### Bot bị mất kết nối
-- Bot sẽ tự động thử kết nối lại. Nếu không khôi phục sau nhiều lần thử, hãy kiểm tra token Discord và kết nối mạng.
+- Kiểm tra `GROQ_API_KEY`.
+- Bật `Message Content Intent`.
+- Bật roleplay trong đúng kênh.
 
-## 9. Thông tin liên hệ & ủng hộ
+## Bảo mật
 
-- **GitHub:** https://github.com/chlorinebot
-- **Tác giả:** Kim Tuấn
-- **Donate:** https://i.pinimg.com/736x/1c/5c/5b/1c5c5beddb559e0f2b85b2f354ef75e1.jpg
+- Không commit `.env`, file log, token hoặc API key.
+- Không đăng secret vào issue, ảnh chụp màn hình hoặc CI log.
+- Nếu secret từng bị push lên GitHub, hãy thu hồi và tạo secret mới.
+- Chỉ cấp cho bot các quyền Discord thực sự cần thiết.
 
----
+## Tác giả
 
-> **Lưu ý bảo mật:** Không bao giờ chia sẻ Discord Token, Groq API Key hay bất kỳ thông tin nhạy cảm nào ra bên ngoài. Tất cả các API key và token nên được lưu trữ trong biến môi trường hoặc file `.env` (đã được thêm vào `.gitignore`).
+- Kim Tuấn
+- GitHub: [chlorinebot](https://github.com/chlorinebot)
+- **Donate:** [https://i.pinimg.com/736x/1c/5c/5b/1c5c5beddb559e0f2b85b2f354ef75e1.jpg](https://i.pinimg.com/736x/1c/5c/5b/1c5c5beddb559e0f2b85b2f354ef75e1.jpg)
+
+## License
+
+Dự án được phát hành theo [MIT License](LICENSE).
+
+Copyright © 2026 Kim Tuấn. Người dùng được phép sử dụng, sao chép, chỉnh sửa, hợp nhất, xuất bản, phân phối, cấp phép lại và bán các bản sao của phần mềm theo các điều kiện trong giấy phép.
